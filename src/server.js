@@ -20,12 +20,8 @@ const pool = new Pool({
 });
 
 app.get("/", (req, res) => {
-    res.json({ message: "Server running"})
+    res.json({ message: "Server is running"})
 })
-
-app.get("/api", (req, res) => {
-    res.json({ message: "Server is running"});
-});
 
 app.get("/users", async (req, res) => {
     try{
@@ -38,17 +34,9 @@ app.get("/users", async (req, res) => {
     }
 });
 
-
-
-
-
-
-
-
-
-const PORT = process.env.port || 3000;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log("Server is running on Port 3005");
+    console.log("Server is running on Port", PORT);
 });
 
-module.exports = app;
+export default app;
