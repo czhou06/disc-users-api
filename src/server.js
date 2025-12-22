@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
-import { Pool, Query } from "pg";
+import pkg from 'pg';
+const { Pool } = pkg;
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -30,9 +31,23 @@ app.get("/users", async (req, res) => {
     } catch (e) {
         console.error("Query error:", e);
         res.status(500).json({ error: "Failed to fetch users"  });
-
     }
 });
+
+app.get("/users/:id", async (req, res) => {
+    const { id } = req.params
+    try{
+        const result = await pool.query("SELECT * FROM users WHERE id = $1", [id]);
+        if (result.rows.length === 0)
+            res.status(404).json({ error: "User not found" });
+        else if (result.rows.length !== 1)
+            res.status(500).json({ error: "Duplicate servers with same ID found"})
+        res.json(result.rows[0]);
+    } catch (e) {
+        console.error("Query error:", e);
+        res.status(500).json({ error: "Failed to fetch users"  });
+    }
+})
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
