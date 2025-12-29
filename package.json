@@ -12,7 +12,7 @@
     "url": "git+https://github.com/czhou06/disc-users-api.git"
   },
   "keywords": [],
-  "author": "",
+  "author": "", 
   "license": "ISC",
   "type": "module",
   "bugs": {
@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/czhou06/disc-users-api#readme",
   "dependencies": {
+    "@supabase/supabase-js": "^2.89.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
