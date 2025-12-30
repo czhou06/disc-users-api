@@ -23,9 +23,10 @@ const pool = new Pool({
 });
 
 // hw 6 stuff
-const { SUPABASE_URL, SUPABASE_API_KEY } = process.env;
+const { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY } = process.env;
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_API_KEY);
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
 const authenticateUser = async (req, res, next) => {
     const authHeader = req.headers.authorization;
@@ -60,39 +61,73 @@ app.get("/", (req, res) => {
 })
 
 app.post("/users", authenticateUser, async (req, res) => {
-    const { id, first_name, last_name, major, bio, graduation_year, date_of_birth, email } = req.body;
+    const id = req.user.id
+    const { first_name, last_name, major, bio, graduation_year, date_of_birth, email } = req.body;
 
     if (!id || !first_name || !last_name) {
         return res.status(400).json({ error: "Missing required fields (id or name)" });
     }
 
     try {
-        const { data, error } = await supabase
-        .from("users")
-        .insert([{
-            id: id,
-            first_name: first_name,
-            last_name: last_name,
-            user_profiles: {
-                major: major,
-                bio: bio,
-                date_of_birth: date_of_birth,
-                graduation_year: graduation_year,
-                email: email,
-            }
-        }])
-        .select();
+        const { data: userData, error: userError } = await supabaseAdmin
+            .from("users")
+            .insert([{ id, first_name, last_name }])
+            .select()
+            .single();
 
-        if (error) {
-            console.error("Supabase Insert Error:", error);
-            throw error;
-        }
+        if (userError) throw userError;
 
-        res.status(201).json(data[0]);
+        const { data: profileData, error: profileError } = await supabaseAdmin
+            .from("user_profiles")
+            .insert([{
+                id: id, 
+                major,
+                bio,
+                graduation_year,
+                date_of_birth,
+                email
+            }])
+            .select()
+            .single();
+
+        if (profileError) throw profileError;
+
+        return res.status(201).json({
+            ...userData,
+            user_profiles: profileData
+        });
 
     } catch (e) {
         console.error("ORM Query error:", e);
         res.status(500).json({ error: "Failed to post new user" });
+    }
+});
+
+app.delete("/users/me", authenticateUser, async (req, res) => {
+    try {
+        const ID = req.user.id;
+
+        const { error } = await supabaseAdmin
+            .from("users")
+            .delete()
+            .eq("id", ID)
+
+        if (error) {
+            console.log("Supabase Query error:", error)
+            return res.status(500).json({ error: "Could not delete user information." });
+        }
+
+        const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(ID);
+
+        if (authError) {
+            console.error("Auth Delete Error:", authError);
+            return res.status(500).json({ error: "User info deleted but could not remove account." });
+        }
+
+        res.status(200).json({ message: "Account successfully deleted" });
+    } catch (e) {
+        console.error("Deletion error:", e);
+        res.status(500).json({ error: "Failed to delete account" });
     }
 });
 
