@@ -7,7 +7,7 @@ const app = express()
 const PORT = process.env.PORT || 3000;
 
 app.use(cors({
-  origin: ['disc-web-app.web.app', 'disc-web-app.firebaseapp.com'],
+  origin: ['https://disc-web-app.web.app', 'https://disc-web-app.firebaseapp.com'],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
