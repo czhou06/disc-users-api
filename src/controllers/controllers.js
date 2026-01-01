@@ -107,7 +107,7 @@ export async function getAllUsers(req, res) {
 export async function getUserByID(req, res) {
     const { id } = req.params
     try {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseAdmin
             .from("users")
             .select(`
                 id,
