@@ -6,7 +6,11 @@ import router from "./routers/router.js"
 const app = express()
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
+app.use(cors({
+  origin: ['disc-web-app.web.app', 'disc-web-app.firebaseapp.com'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 
 app.use(router)
